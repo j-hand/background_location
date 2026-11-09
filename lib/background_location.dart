@@ -50,7 +50,7 @@ class BackgroundLocation {
   }
 
   /// Request a current location fix once, independently of location updates.
-  Future<Location> getCurrentLocation() async {
+  static Future<Location> getCurrentLocation() async {
     final locationData =
         await _channel.invokeMapMethod<String, dynamic>('get_current_location');
     if (locationData == null) {

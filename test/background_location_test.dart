@@ -27,7 +27,7 @@ void main() {
       };
     });
 
-    final location = await BackgroundLocation().getCurrentLocation();
+    final location = await BackgroundLocation.getCurrentLocation();
 
     expect(location.latitude, 1.0);
     expect(location.longitude, 2.0);

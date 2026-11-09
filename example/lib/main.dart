@@ -115,7 +115,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   void getCurrentLocation() {
-    BackgroundLocation().getCurrentLocation().then((location) {
+    BackgroundLocation.getCurrentLocation().then((location) {
       print('This is current Location ${location.toMap()}');
     });
   }
