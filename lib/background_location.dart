@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
@@ -24,9 +23,14 @@ class BackgroundLocation {
   }
 
   /// Start receiving location updated
-  static Future<dynamic> startLocationService({double distanceFilter = 0.0, bool forceAndroidLocationManager = false}) async {
-    return await _channel.invokeMethod('start_location_service',
-        <String, dynamic>{'distance_filter': distanceFilter, 'force_location_manager': forceAndroidLocationManager});
+  static Future<dynamic> startLocationService(
+      {double distanceFilter = 0.0,
+      bool forceAndroidLocationManager = false}) async {
+    return await _channel
+        .invokeMethod('start_location_service', <String, dynamic>{
+      'distance_filter': distanceFilter,
+      'force_location_manager': forceAndroidLocationManager
+    });
   }
 
   static Future<dynamic> setAndroidNotification(
@@ -45,50 +49,44 @@ class BackgroundLocation {
     }
   }
 
-  /// Get the current location once.
+  /// Request a current location fix once, independently of location updates.
   Future<Location> getCurrentLocation() async {
-    var completer = Completer<Location>();
-
-    getLocationUpdates((location) {
-      var loc = Location(
-        latitude: location.latitude,
-        longitude: location.longitude,
-        accuracy: location.accuracy,
-        altitude: location.altitude,
-        bearing: location.bearing,
-        speed: location.speed,
-        time: location.time,
-        isMock: location.isMock,
+    final locationData =
+        await _channel.invokeMapMethod<String, dynamic>('get_current_location');
+    if (locationData == null) {
+      throw PlatformException(
+        code: 'location_unavailable',
+        message: 'The platform did not return a location.',
       );
-      completer.complete(loc);
-    });
-
-    return completer.future;
+    }
+    return _locationFromMap(locationData);
   }
-
-
 
   /// Register a function to recive location updates as long as the location
   /// service has started
   static void getLocationUpdates(Function(Location) location) {
     // add a handler on the channel to recive updates from the native classes
     _channel.setMethodCallHandler((MethodCall methodCall) async {
-      if (methodCall.method == 'location') {
-        var locationData = Map.from(methodCall.arguments);
+      if (methodCall.method == 'location' && methodCall.arguments is Map) {
+        final locationData =
+            Map<dynamic, dynamic>.from(methodCall.arguments as Map);
         // Call the user passed function
-        location(
-          Location(
-              latitude: locationData['latitude'],
-              longitude: locationData['longitude'],
-              altitude: locationData['altitude'],
-              accuracy: locationData['accuracy'],
-              bearing: locationData['bearing'],
-              speed: locationData['speed'],
-              time: locationData['time'],
-              isMock: locationData['is_mock']),
-        );
+        location(_locationFromMap(locationData));
       }
     });
+  }
+
+  static Location _locationFromMap(Map<dynamic, dynamic> locationData) {
+    return Location(
+      latitude: locationData['latitude'],
+      longitude: locationData['longitude'],
+      altitude: locationData['altitude'],
+      accuracy: locationData['accuracy'],
+      bearing: locationData['bearing'],
+      speed: locationData['speed'],
+      time: locationData['time'],
+      isMock: locationData['is_mock'],
+    );
   }
 }
 

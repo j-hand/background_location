@@ -113,6 +113,13 @@ BackgroundLocation.getLocationUpdates((location) {
 });
 ```
 
+To request a location fix immediately without waiting for the next streaming update, call `getCurrentLocation`. Location permission must be granted first. The returned future completes with the requested fix or throws a `PlatformException` if permission is denied, a fix is unavailable, or the request times out.
+
+```dart
+final location = await BackgroundLocation().getCurrentLocation();
+print(location.toMap());
+```
+
 location is a `Class` exposing the following properties.
 
 ```dart
